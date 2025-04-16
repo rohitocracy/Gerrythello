@@ -40,6 +40,66 @@
   height: 50px;
   margin-right: 10px;
 }
+    /* Select Dropdown */
+#gameMode {
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 16px;
+  border: 1px solid #888;
+  background-color: #fff;
+  color: #333;
+}
+
+/* Shared Button Base */
+button {
+  font-size: 14px;
+  font-weight: bold;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border: none;
+  margin: 2px;
+}
+
+/* Blue Buttons */
+#redistrictBlueBtn,
+#lobbyBlueBtn {
+  background-color: #3498db;
+  color: white;
+}
+#redistrictBlueBtn:hover,
+#lobbyBlueBtn:hover {
+  background-color: #217dbb;
+}
+
+/* Red Buttons */
+#redistrictRedBtn,
+#lobbyRedBtn {
+  background-color: #e74c3c;
+  color: white;
+}
+#redistrictRedBtn:hover,
+#lobbyRedBtn:hover {
+  background-color: #c0392b;
+}
+
+/* New Game Button */
+#newGameBtn {
+  background-color: #f1c40f;
+  color: #2c3e50;
+  border: 2px solid #e67e22;
+}
+#newGameBtn:hover {
+  background-color: #f39c12;
+}
+
+/* Disabled Button State */
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
     #gameBoard {
       display: grid;
       grid-template-columns: repeat(9, 60px);
@@ -134,7 +194,7 @@
 <button id="lobbyBlueBtn" disabled>💰 Blue Lobby</button>
 <button id="redistrictRedBtn" disabled>🔄 Red Redistrict</button>
 <button id="lobbyRedBtn" disabled>💰 Red Lobby</button>
-  <button id="newGameBtn" style="padding: 10px 20px; margin-left: 20px;">New Game</button>
+  <button id="newGameBtn">New Game</button>
   <div id="turnIndicator" style="margin-left: 20px; font-weight: bold;">Current Turn: Blue</div>
   &copy;rohitocracy
 </div>
