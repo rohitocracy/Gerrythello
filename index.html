@@ -1,587 +1,607 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerrymandering Othello 9x9</title>
-    <style>
-        body { font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; background-color: #f0f0f0; }
-        #gameContainer { background-color: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
-        #gameBoard { 
-            display: grid; 
-            grid-template-columns: repeat(9, 60px);
-            grid-template-rows: repeat(9, 60px);
-            height: 540px;
-            width: 540px;
-            background: #fff; 
-        }
-        .cell { width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; cursor: pointer; position: relative; box-sizing: border-box; border: 1px solid #ccc; }
-        .district { position: absolute; width: 100%; height: 100%; pointer-events: none; box-sizing: border-box; }
-        .disk { width: 45px; height: 45px; border-radius: 50%; transition: all 0.3s; box-shadow: 0 3px 6px rgba(0,0,0,0.16); }
-        .blue { background: #3498db; }
-        .red { background: #e74c3c; }
-        .valid-move { box-shadow: inset 0 0 15px rgba(255,165,0,0.5); }
-        .game-over { pointer-events: none; opacity: 0.7; }
-        #gameHeader { margin-bottom: 20px; display: flex; gap: 20px; align-items: center; }
-        #score, #status { margin-top: 20px; text-align: center; background-color: #fff; padding: 15px; border-radius: 8px; width: 100%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        #score { display: flex; justify-content: space-around; gap: 20px; }
-        .score-box { padding: 10px 20px; border-radius: 5px; min-width: 120px; }
-        .blue-score { background-color: #3498db; color: white; }
-        .red-score { background-color: #e74c3c; color: white; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gerrymandering Othello 9x9</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: #f0f0f0;
+    }
+    #gameWrapper {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+    #rulesPanel, #commentaryPanel {
+      width: 280px;
+      background-color: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    #gameContainer {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    }
+    #gameBoard {
+      display: grid;
+      grid-template-columns: repeat(9, 60px);
+      grid-template-rows: repeat(9, 60px);
+      height: 540px;
+      width: 540px;
+      background: #fff;
+    }
+    .cell {
+      width: 60px;
+      height: 60px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      position: relative;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+    }
+    .district {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      box-sizing: border-box;
+    }
+    .disk {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      transition: all 0.3s;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
+    }
+    .blue {
+      background: #3498db;
+    }
+    .red {
+      background: #e74c3c;
+    }
+    .valid-move {
+      box-shadow: inset 0 0 15px rgba(139, 69, 0, 0.8);
+    }
+    .game-over {
+      pointer-events: none;
+      opacity: 0.7;
+    }
+    #gameHeader {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+    #score,
+    #status {
+      margin-top: 20px;
+      text-align: center;
+      background-color: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      width: 100%;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    #score {
+      display: flex;
+      justify-content: space-around;
+      gap: 20px;
+    }
+    .score-box {
+      padding: 10px 20px;
+      border-radius: 5px;
+      min-width: 120px;
+    }
+    .blue-score {
+      background-color: #3498db;
+      color: white;
+    }
+    .red-score {
+      background-color: #e74c3c;
+      color: white;
+    }
+  </style>
 </head>
 <body>
-    <div id="gameHeader">
-        <select id="gameMode">
-            <option value="twoPlayer">Two Players</option>
-            <option value="vsComputer">Player vs Computer</option>
-        </select>
-    </div>
+ <div id="gameHeader">
+  <select id="gameMode">
+    <option value="twoPlayer">Two Players</option>
+    <option value="vsComputer">Player vs Computer</option>
+  </select>
+  <button id="redistrictBlueBtn" disabled>🔄 Blue Redistrict</button>
+  <button id="redistrictRedBtn" disabled>🔄 Red Redistrict</button>
+  <button id="newGameBtn" style="padding: 10px 20px; margin-left: 20px;">New Game</button>
+  <div id="turnIndicator" style="margin-left: 20px; font-weight: bold;">Current Turn: Blue</div>
+</div>
+  <div id="gameWrapper">
+    <div id="rulesPanel">
+  <h3>Rules</h3>
+  <ul>
+    <li>Players take turns placing disks on the board.</li>
+    <li>Flank and flip opponent disks in any direction.</li>
+    <li>The board is divided into 9 districts (each 9 tiles), randomized at the start.</li>
+    <li>At any time on their turn, a player can choose to <strong>Redistrict</strong> instead of playing a disk.</li>
+    <li>Redistricting:
+      <ul>
+        <li>Regenerates the district map, but all current disks stay in place.</li>
+        <li>Costs the player their turn — control passes to the opponent.</li>
+        <li>Can only be used <strong>once per player</strong> per game.</li>
+      </ul>
+    </li>
+    <li>Each district is awarded to the player with majority control in it.</li>
+    <li>The player with the most districts at game end wins.</li>
+  </ul>
+</div>
+
     <div id="gameContainer">
-        <div id="gameBoard"></div>
-        <div id="score">
-            <div class="score-box blue-score">
-                Blue Tokens: <span id="blueTokens">2</span><br>
-                Blue Districts: <span id="blueDistricts">0</span>
-            </div>
-            <div class="score-box red-score">
-                Red Tokens: <span id="redTokens">2</span><br>
-                Red Districts: <span id="redDistricts">0</span>
-            </div>
+      <div id="gameBoard"></div>
+      <div id="score">
+        <div class="score-box blue-score">
+          Blue Tokens: <span id="blueTokens">2</span><br />
+          Blue Districts: <span id="blueDistricts">0</span>
         </div>
-        <div id="status"></div>
+        <div class="score-box red-score">
+          Red Tokens: <span id="redTokens">2</span><br />
+          Red Districts: <span id="redDistricts">0</span>
+        </div>
+      </div>
+      <div id="status"></div>
     </div>
+    <div id="commentaryPanel">
+      <h3>Commentary</h3>
+      <div id="aiCommentary" style="max-height: 200px; overflow-y: auto;"></div>
+    </div>
+  </div>
 
-    <script>
-        const BOARD_SIZE = 9;
-        let currentPlayer = 'blue';
-        let gameActive = true;
-        let gameMode = 'twoPlayer';
-        let districts = [];
-        let boardState = Array(81).fill(null);
+  <script>
+    const BOARD_SIZE = 9;
+    let currentPlayer = 'blue';
+    let gameActive = true;
+    let gameMode = 'twoPlayer';
+    let districts = [];
+    let boardState = Array(81).fill(null);
+let blueUsedRedistrict = false;
+let redUsedRedistrict = false;
 
-        document.getElementById('gameMode').addEventListener('change', (e) => {
-            gameMode = e.target.value;
-            resetGame();
-        });
+    const redistrictBlueBtn = document.getElementById('redistrictBlueBtn');
+    const redistrictRedBtn = document.getElementById('redistrictRedBtn');
+    const turnIndicator = document.getElementById('turnIndicator');
+    document.getElementById('newGameBtn').onclick = resetGame;
 
-function resetGame() {
-    boardState = Array(81).fill(null);
-    gameActive = true;
-    currentPlayer = 'blue';
-    initBoard();
-}
+    redistrictBlueBtn.onclick = () => doRedistricting('blue');
+    redistrictRedBtn.onclick = () => doRedistricting('red');
 
-	const newGameBtn = document.createElement('button');
-newGameBtn.textContent = 'New Game';
-newGameBtn.style.padding = '10px 20px';
-newGameBtn.style.marginLeft = '20px';
-newGameBtn.onclick = resetGame;
-document.getElementById('gameHeader').appendChild(newGameBtn);
+    const DIRECTIONS = [
+      [-1, -1], [0, -1], [1, -1],
+      [-1, 0],          [1, 0],
+      [-1, 1],  [0, 1],  [1, 1]
+    ];
 
-
-        function generateDistricts() {
-            const DIRS = [[-1,0],[1,0],[0,-1],[0,1]];
-            let grid = Array(9).fill(null).map(() => Array(9).fill(-1));
-
-            function isValid(x, y) {
-                return x >= 0 && x < 9 && y >= 0 && y < 9 && grid[y][x] === -1;
-            }
-
-            function getNeighbors(x, y) {
-                return DIRS.map(([dx, dy]) => [x+dx, y+dy]).filter(([nx, ny]) => isValid(nx, ny));
-            }
-
-            function growDistrict(seedX, seedY, districtId) {
-                let cells = [[seedX, seedY]];
-                grid[seedY][seedX] = districtId;
-                let frontier = [[seedX, seedY]];
-
-                while (cells.length < 9 && frontier.length > 0) {
-                    let [x, y] = frontier.shift();
-                    let neighbors = getNeighbors(x, y);
-                    for (let [nx, ny] of shuffle(neighbors)) {
-                        if (cells.length >= 9) break;
-                        grid[ny][nx] = districtId;
-                        frontier.push([nx, ny]);
-                        cells.push([nx, ny]);
-                    }
-                }
-                return cells.length === 9;
-            }
-
-            function shuffle(arr) {
-                for (let i = arr.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [arr[i], arr[j]] = [arr[j], arr[i]];
-                }
-                return arr;
-            }
-
-            for (let d = 0; d < 9; d++) {
-                let success = false, tries = 0;
-                while (!success && tries < 1000) {
-                    let x = Math.floor(Math.random() * 9);
-                    let y = Math.floor(Math.random() * 9);
-                    if (grid[y][x] === -1) {
-                        success = growDistrict(x, y, d);
-                    }
-                    tries++;
-                }
-                if (!success) return generateDistricts();
-            }
-
-            let districtMap = Array.from({ length: 9 }, () => []);
-            for (let y = 0; y < 9; y++) {
-                for (let x = 0; x < 9; x++) {
-                    const id = grid[y][x];
-                    districtMap[id].push(y * 9 + x);
-                }
-            }
-            return districtMap;
-        }
-
-        function initBoard() {
-            const board = document.getElementById('gameBoard');
-            board.innerHTML = '';
-            districts = generateDistricts().map(cells => ({ cells }));
-
-            for (let i = 0; i < 81; i++) {
-                const cell = document.createElement('div');
-                cell.className = 'cell';
-                cell.dataset.index = i;
-                const district = document.createElement('div');
-                district.className = 'district';
-                const currentDistrict = districts.find(d => d.cells.includes(i));
-
-                let borders = {
-                    top: !currentDistrict.cells.includes(i - 9),
-                    bottom: !currentDistrict.cells.includes(i + 9),
-                    left: !currentDistrict.cells.includes(i - 1) && i % 9 !== 0,
-                    right: !currentDistrict.cells.includes(i + 1) && (i + 1) % 9 !== 0
-                };
-
-                district.style.borderTop = borders.top ? '2px solid #2c3e50' : 'none';
-                district.style.borderBottom = borders.bottom ? '2px solid #2c3e50' : 'none';
-                district.style.borderLeft = borders.left ? '2px solid #2c3e50' : 'none';
-                district.style.borderRight = borders.right ? '2px solid #2c3e50' : 'none';
-
-                cell.appendChild(district);
-                cell.addEventListener('click', handleCellClick);
-                board.appendChild(cell);
-            }
-
-            boardState = Array(81).fill(null);
-            boardState[40] = 'red';
-            boardState[41] = 'blue';
-            boardState[49] = 'blue';
-            boardState[50] = 'red';
-
-            updateGameState();
-        }
-
-        
-function handleCellClick(e) {
-    if (gameMode === 'vsComputer' && currentPlayer !== 'blue') return;
-    const index = parseInt(e.currentTarget.dataset.index);
-    placeDisk(index);
-}
-
-function getValidMoves(player) {
-    const moves = new Set();
-    for (let i = 0; i < BOARD_SIZE * BOARD_SIZE; i++) {
-        if (boardState[i] === null && isValidMove(i, player)) {
-            moves.add(i);
-        }
-    }
-    return moves;
-}
-
-function placeDisk(index) {
-    if (!gameActive || boardState[index] !== null) return;
-    const validMoves = getValidMoves(currentPlayer);
-    if (!validMoves.has(index)) return;
-    const toFlip = getFlippedDisks(index, currentPlayer);
-    boardState[index] = currentPlayer;
-    toFlip.forEach(i => boardState[i] = currentPlayer);
-    const nextPlayer = currentPlayer === 'blue' ? 'red' : 'blue';
-    if (getValidMoves(nextPlayer).size === 0) {
-        if (getValidMoves(currentPlayer).size === 0) {
-            gameActive = false;
-        }
-    } else {
-        currentPlayer = nextPlayer;
-    }
-    updateGameState();
-    if (gameActive && gameMode === 'vsComputer' && currentPlayer === 'red') {
-        computerMove();
-    }
-}
-
-function getFlippedDisks(index, player) {
-    const opponent = player === 'blue' ? 'red' : 'blue';
-    const x = index % BOARD_SIZE, y = Math.floor(index / BOARD_SIZE);
-    const toFlip = [];
-    for (const [dx, dy] of DIRECTIONS) {
-        let nx = x + dx, ny = y + dy;
-        const tempFlip = [];
-        while (nx >= 0 && nx < BOARD_SIZE && ny >= 0 && ny < BOARD_SIZE) {
-            const ni = ny * BOARD_SIZE + nx;
-            if (boardState[ni] === opponent) tempFlip.push(ni);
-            else if (boardState[ni] === player) {
-                toFlip.push(...tempFlip);
-                break;
-            } else break;
-            nx += dx; ny += dy;
-        }
-    }
-    return toFlip;
-}
-
-function updateGameState() {
-    if (checkWinCondition()) {
-        gameActive = false;
-        const scores = calculateDistrictControl();
-        let winner = 'Draw';
-        if (scores.blue > scores.red) winner = 'Blue';
-        else if (scores.red > scores.blue) winner = 'Red';
-        document.getElementById('status').innerHTML = `
-            <h2>Game Over! ${winner} Wins!</h2>
-            Final District Control: Blue ${scores.blue} - Red ${scores.red}
-        `;
-        document.getElementById('gameBoard').classList.add('game-over');
-    }
-    highlightValidMoves();
-    updateBoard();
-    updateScoreBoard();
-}
-
-function updateScoreBoard() {
-    const blueTokens = boardState.filter(cell => cell === 'blue').length;
-    const redTokens = boardState.filter(cell => cell === 'red').length;
-    const districtControl = calculateDistrictControl();
-    document.getElementById('blueTokens').textContent = blueTokens;
-    document.getElementById('redTokens').textContent = redTokens;
-    document.getElementById('blueDistricts').textContent = districtControl.blue;
-    document.getElementById('redDistricts').textContent = districtControl.red;
-}
-
-function highlightValidMoves() {
-    document.querySelectorAll('.cell').forEach(cell => {
-        cell.classList.remove('valid-move');
-        const index = parseInt(cell.dataset.index);
-        if (getValidMoves(currentPlayer).has(index)) cell.classList.add('valid-move');
+    document.getElementById('gameMode').addEventListener('change', (e) => {
+      gameMode = e.target.value;
+      resetGame();
     });
-}
 
-function updateBoard() {
-    document.querySelectorAll('.cell').forEach((cell, i) => {
+   
+
+    function generateDistricts() {
+      const DIRS = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+      let grid = Array(9).fill(null).map(() => Array(9).fill(-1));
+
+      function isValid(x, y) {
+        return x >= 0 && x < 9 && y >= 0 && y < 9 && grid[y][x] === -1;
+      }
+
+      function getNeighbors(x, y) {
+        return DIRS.map(([dx, dy]) => [x + dx, y + dy]).filter(([nx, ny]) => isValid(nx, ny));
+      }
+
+      function growDistrict(seedX, seedY, districtId) {
+        let cells = [[seedX, seedY]];
+        grid[seedY][seedX] = districtId;
+        let frontier = [[seedX, seedY]];
+
+        while (cells.length < 9 && frontier.length > 0) {
+          let [x, y] = frontier.shift();
+          let neighbors = getNeighbors(x, y);
+          for (let [nx, ny] of shuffle(neighbors)) {
+            if (cells.length >= 9) break;
+            grid[ny][nx] = districtId;
+            frontier.push([nx, ny]);
+            cells.push([nx, ny]);
+          }
+        }
+        return cells.length === 9;
+      }
+
+      function shuffle(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+      }
+
+      for (let d = 0; d < 9; d++) {
+        let success = false, tries = 0;
+        while (!success && tries < 1000) {
+          let x = Math.floor(Math.random() * 9);
+          let y = Math.floor(Math.random() * 9);
+          if (grid[y][x] === -1) {
+            success = growDistrict(x, y, d);
+          }
+          tries++;
+        }
+        if (!success) return generateDistricts();
+      }
+
+      let districtMap = Array.from({ length: 9 }, () => []);
+      for (let y = 0; y < 9; y++) {
+        for (let x = 0; x < 9; x++) {
+          const id = grid[y][x];
+          districtMap[id].push(y * 9 + x);
+        }
+      }
+      return districtMap;
+    }
+
+    function initBoard() {
+      const board = document.getElementById('gameBoard');
+      board.innerHTML = '';
+      districts = generateDistricts().map(cells => ({ cells }));
+
+      for (let i = 0; i < 81; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.dataset.index = i;
+        const district = document.createElement('div');
+        district.className = 'district';
+        const currentDistrict = districts.find(d => d.cells.includes(i));
+
+        let borders = {
+          top: !currentDistrict.cells.includes(i - 9),
+          bottom: !currentDistrict.cells.includes(i + 9),
+          left: !currentDistrict.cells.includes(i - 1) && i % 9 !== 0,
+          right: !currentDistrict.cells.includes(i + 1) && (i + 1) % 9 !== 0
+        };
+
+        district.style.borderTop = borders.top ? '2px solid #2c3e50' : 'none';
+        district.style.borderBottom = borders.bottom ? '2px solid #2c3e50' : 'none';
+        district.style.borderLeft = borders.left ? '2px solid #2c3e50' : 'none';
+        district.style.borderRight = borders.right ? '2px solid #2c3e50' : 'none';
+
+        cell.appendChild(district);
+        cell.addEventListener('click', handleCellClick);
+        board.appendChild(cell);
+      }
+
+      boardState = Array(81).fill(null);
+      boardState[40] = 'red';
+      boardState[41] = 'blue';
+      boardState[49] = 'blue';
+      boardState[50] = 'red';
+
+      updateGameState();
+    }
+
+    function handleCellClick(e) {
+      if (!gameActive) return;
+      const index = parseInt(e.currentTarget.dataset.index);
+      if (!getValidMoves(currentPlayer).has(index)) return;
+      placeDisk(index);
+      if (gameMode === 'vsComputer' && gameActive && currentPlayer === 'red') {
+        setTimeout(computerMove, 500);
+      }
+    }
+
+    function getValidMoves(player) {
+      const moves = new Set();
+      for (let i = 0; i < 81; i++) {
+        if (boardState[i] === null && getFlippedDisks(i, player).length > 0) {
+          moves.add(i);
+        }
+      }
+      return moves;
+    }
+
+    function getFlippedDisks(index, player) {
+      const opponent = player === 'blue' ? 'red' : 'blue';
+      const x = index % 9;
+      const y = Math.floor(index / 9);
+      const flipped = [];
+
+      for (const [dx, dy] of DIRECTIONS) {
+        let nx = x + dx;
+        let ny = y + dy;
+        const temp = [];
+        while (nx >= 0 && nx < 9 && ny >= 0 && ny < 9) {
+          const ni = ny * 9 + nx;
+          if (boardState[ni] === opponent) {
+            temp.push(ni);
+          } else if (boardState[ni] === player) {
+            flipped.push(...temp);
+            break;
+          } else {
+            break;
+          }
+          nx += dx;
+          ny += dy;
+        }
+      }
+      return flipped;
+    }
+
+    function placeDisk(index) {
+      const flipped = getFlippedDisks(index, currentPlayer);
+      if (flipped.length === 0) return;
+      boardState[index] = currentPlayer;
+      flipped.forEach(i => boardState[i] = currentPlayer);
+      currentPlayer = currentPlayer === 'blue' ? 'red' : 'blue';
+
+      if (getValidMoves(currentPlayer).size === 0) {
+        currentPlayer = currentPlayer === 'blue' ? 'red' : 'blue';
+        if (getValidMoves(currentPlayer).size === 0) {
+          gameActive = false;
+        }
+      }
+
+      updateGameState();
+    }
+
+    function calculateDistrictControl() {
+      const districtWins = { blue: 0, red: 0 };
+      districts.forEach(district => {
+        const counts = { blue: 0, red: 0 };
+        district.cells.forEach(i => {
+          if (boardState[i] === 'blue') counts.blue++;
+          if (boardState[i] === 'red') counts.red++;
+        });
+        if (counts.blue > counts.red) districtWins.blue++;
+        if (counts.red > counts.blue) districtWins.red++;
+      });
+      return districtWins;
+    }
+
+    function updateScoreBoard() {
+      const blueTokens = boardState.filter(v => v === 'blue').length;
+      const redTokens = boardState.filter(v => v === 'red').length;
+      const control = calculateDistrictControl();
+
+      document.getElementById('blueTokens').textContent = blueTokens;
+      document.getElementById('redTokens').textContent = redTokens;
+      document.getElementById('blueDistricts').textContent = control.blue;
+      document.getElementById('redDistricts').textContent = control.red;
+generateCommentary(control.blue, control.red);
+    }
+
+    function highlightValidMoves() {
+      document.querySelectorAll('.cell').forEach((cell, i) => {
+        cell.classList.remove('valid-move');
+        if (getValidMoves(currentPlayer).has(i)) {
+          cell.classList.add('valid-move');
+        }
+      });
+    }
+
+    function updateBoard() {
+      document.querySelectorAll('.cell').forEach((cell, i) => {
         let existingDisk = cell.querySelector('.disk');
         if (existingDisk) existingDisk.remove();
         if (boardState[i]) {
-            const disk = document.createElement('div');
-            disk.className = `disk ${boardState[i]}`;
-            cell.appendChild(disk);
+          const disk = document.createElement('div');
+          disk.className = `disk ${boardState[i]}`;
+          cell.appendChild(disk);
         }
-    });
+      });
+    }
+
+    function doRedistricting(player) {
+  if (currentPlayer !== player || !gameActive) return;
+
+  // Mark redistricting used and disable button
+  if (player === 'blue') {
+    blueUsedRedistrict = true;
+    redistrictBlueBtn.disabled = true;
+  } else {
+    redUsedRedistrict = true;
+    redistrictRedBtn.disabled = true;
+  }
+
+  // Regenerate only the districts — keep the disks
+  districts = generateDistricts().map(cells => ({ cells }));
+
+  // Reinitialize visuals but keep boardState
+  const board = document.getElementById('gameBoard');
+  board.innerHTML = '';
+  for (let i = 0; i < 81; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.dataset.index = i;
+
+    const district = document.createElement('div');
+    district.className = 'district';
+
+    const currentDistrict = districts.find(d => d.cells.includes(i));
+    let borders = {
+      top: !currentDistrict.cells.includes(i - 9),
+      bottom: !currentDistrict.cells.includes(i + 9),
+      left: !currentDistrict.cells.includes(i - 1) && i % 9 !== 0,
+      right: !currentDistrict.cells.includes(i + 1) && (i + 1) % 9 !== 0
+    };
+
+    district.style.borderTop = borders.top ? '2px solid #2c3e50' : 'none';
+    district.style.borderBottom = borders.bottom ? '2px solid #2c3e50' : 'none';
+    district.style.borderLeft = borders.left ? '2px solid #2c3e50' : 'none';
+    district.style.borderRight = borders.right ? '2px solid #2c3e50' : 'none';
+
+    cell.appendChild(district);
+    cell.addEventListener('click', handleCellClick);
+    board.appendChild(cell);
+  }
+
+  // Skip turn
+  currentPlayer = currentPlayer === 'blue' ? 'red' : 'blue';
+
+  // Check for no moves
+  if (getValidMoves(currentPlayer).size === 0) {
+    currentPlayer = currentPlayer === 'blue' ? 'red' : 'blue';
+    if (getValidMoves(currentPlayer).size === 0) {
+      gameActive = false;
+    }
+  }
+
+  updateGameState();
 }
 
 
-function checkWinCondition() {
-    if (!gameActive) return true;
-    return boardState.filter(c => c !== null).length === 81;
+
+    function updateGameState() {
+      highlightValidMoves();
+  updateBoard();
+  updateScoreBoard();
+
+  // Update turn display
+  turnIndicator.textContent = `Current Turn: ${currentPlayer.charAt(0).toUpperCase() + currentPlayer.slice(1)}`;
+
+  // Enable only the correct redistricting button
+  redistrictBlueBtn.disabled = currentPlayer !== 'blue' || blueUsedRedistrict || !gameActive;
+  redistrictRedBtn.disabled = currentPlayer !== 'red' || redUsedRedistrict || !gameActive;
+
+  if (!gameActive) {
+    const control = calculateDistrictControl();
+    let result = 'Draw';
+    if (control.blue > control.red) result = 'Blue wins!';
+    else if (control.red > control.blue) result = 'Red wins!';
+    document.getElementById('status').innerHTML = `<h2>Game Over: ${result}</h2>`;
+    document.getElementById('gameBoard').classList.add('game-over');
+    document.getElementById('aiCommentary').textContent = result;
+  }
+    }
+let commentPools = {
+  tie: [],
+  blue: [],
+  red: []
+};
+
+function generateCommentary(blue, red) {
+  const diff = blue - red;
+  let type = diff === 0 ? 'tie' : (diff > 0 ? 'blue' : 'red');
+
+  // If pool is empty, refill and shuffle
+  if (commentPools[type].length === 0) {
+    commentPools[type] = shuffle([...getCommentPool(type)]);
+  }
+
+  // Get and format comment
+  let raw = commentPools[type].pop();
+  let comment = raw.replace(/\${blue}/g, blue).replace(/\${red}/g, red).replace(/\${diff}/g, Math.abs(diff));
+
+  const panel = document.getElementById('aiCommentary');
+  if (!panel) return;
+
+  const entry = document.createElement('div');
+  entry.textContent = `🧠 ${comment}`;
+  entry.style.padding = '4px 0';
+  panel.appendChild(entry);
+  panel.scrollTop = panel.scrollHeight;
 }
 
-function calculateDistrictControl() {
-    const districtWins = { blue: 0, red: 0 };
-    districts.forEach(district => {
-        const counts = district.cells.reduce((acc, i) => {
-            if (boardState[i]) acc[boardState[i]]++;
-            return acc;
-        }, { blue: 0, red: 0 });
-        if (counts.blue > counts.red) districtWins.blue++;
-        else if (counts.red > counts.blue) districtWins.red++;
-    });
-    return districtWins;
+function getCommentPool(type) {
+  const tie = [
+    "⚖️ It's perfectly balanced at ${blue}-${red}. Are they colluding?",
+    "🤝 ${blue}-${red}. It’s like watching synchronized bureaucracy.",
+    "🧘 ${blue}-${red} — the calm before the gerrystorm.",
+    "⏳ Deadlock at ${blue}-${red}. Suspense is the real winner.",
+    "😐 ${blue}-${red} tie — they’re basically shaking hands instead of playing.",
+    "📎 The districts are tied ${blue}-${red}. Are we in spreadsheet mode?",
+    "🔄 ${blue}-${red}. This isn’t a match, it’s a staring contest.",
+    "🫱🫲 Even at ${blue}-${red}. It’s giving Cold War energy.",
+    "🥶 Tied at ${blue}-${red}. The board’s frozen in time.",
+    "🪞 ${blue}-${red}. A perfect mirror match of strategy... or lack of it."
+  ];
+
+  const blue = [
+    "💙 Blue leads ${blue}-${red}. Red’s map is just wishful thinking.",
+    "🎯 ${blue}-${red} — Blue is outlining victory in permanent marker.",
+    "🚀 Blue soars to ${blue}-${red}. Red's still taxiing the runway.",
+    "🧠 Blue's ahead ${blue}-${red}. Red should file a district complaint.",
+    "🎉 ${blue}-${red} — Blue’s lead has its own ZIP code now.",
+    "😎 ${blue}-${red}. Blue's playing, Red's praying.",
+    "🧊 Ice cold execution. Blue up ${blue}-${red}.",
+    "📈 ${blue}-${red} — Blue's stock is climbing, Red's crashing.",
+    "🪄 Blue leads ${blue}-${red}. Must be sorcery. Or strategy.",
+    "🪧 ${blue}-${red} — Blue's campaigning *inside* the districts now.",
+    "📊 Blue’s got ${blue} districts. Red has ${red}. Painful math.",
+    "🏁 Blue’s outpacing Red ${blue}-${red}. It's a marathon, not a sprint."
+  ];
+
+  const red = [
+    "🔥 Red takes charge ${red}-${blue}. Gerrymandered and glorious.",
+    "📛 ${red}-${blue} — Red’s dominating like they wrote the rulebook.",
+    "🧨 Red’s nuking the map ${red}-${blue}. Blue’s just collateral.",
+    "🧠 Red's ahead ${red}-${blue}. Blue needs a miracle or a map.",
+    "🕺 Red dances ahead ${red}-${blue}. Blue’s stuck in analysis paralysis.",
+    "💣 Red’s lead is brutal: ${red}-${blue}. Blue might disconnect soon.",
+    "💼 ${red}-${blue} — Red is running a campaign. Blue's just running.",
+    "🧃 ${red}-${blue} — Red’s drinking Blue’s electoral milkshake.",
+    "👑 ${red}-${blue}. Red's holding court across the board.",
+    "🔊 Red up ${red}-${blue}. Even the commentary is scared.",
+    "🎯 Strategic fire from Red. ${red}-${blue} on the scoreboard.",
+    "🫠 Blue’s down ${blue}-${red}. Send snacks and hope."
+  ];
+
+  return type === 'tie' ? tie : type === 'blue' ? blue : red;
 }
 
-function resetGame() {
-    boardState = Array(81).fill(null);
-    currentPlayer = 'blue';
-    gameActive = true;
-    boardState[40] = 'red';
-    boardState[41] = 'blue';
-    boardState[49] = 'blue';
-    boardState[50] = 'red';
-    updateGameState();
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
 }
 
-        function handleCellClick(e) {
-            if (!gameActive) return;
-            const index = parseInt(e.currentTarget.dataset.index);
-            if (!getValidMoves(currentPlayer).has(index)) return;
-            placeDisk(index);
+    function computerMove() {
+      const validMoves = Array.from(getValidMoves('red'));
+      if (validMoves.length === 0) return;
+      let bestMove = validMoves[0];
+      let maxFlips = 0;
+      for (let move of validMoves) {
+        const flips = getFlippedDisks(move, 'red').length;
+        if (flips > maxFlips) {
+          maxFlips = flips;
+          bestMove = move;
         }
+      }
+      placeDisk(bestMove);
+    }
 
-        function getValidMoves(player) {
-            const moves = new Set();
-            for (let i = 0; i < 81; i++) {
-                if (boardState[i] === null && getFlippedDisks(i, player).length > 0) {
-                    moves.add(i);
-                }
-            }
-            return moves;
-        }
-
-        function getFlippedDisks(index, player) {
-            const opponent = player === 'blue' ? 'red' : 'blue';
-            const directions = [
-                [-1, -1], [0, -1], [1, -1],
-                [-1, 0],          [1, 0],
-                [-1, 1],  [0, 1],  [1, 1]
-            ];
-            const x = index % 9;
-            const y = Math.floor(index / 9);
-            const flipped = [];
-
-            for (const [dx, dy] of directions) {
-                let nx = x + dx;
-                let ny = y + dy;
-                const temp = [];
-                while (nx >= 0 && nx < 9 && ny >= 0 && ny < 9) {
-                    const ni = ny * 9 + nx;
-                    if (boardState[ni] === opponent) {
-                        temp.push(ni);
-                    } else if (boardState[ni] === player) {
-                        flipped.push(...temp);
-                        break;
-                    } else {
-                        break;
-                    }
-                    nx += dx;
-                    ny += dy;
-                }
-            }
-            return flipped;
-        }
-
-        function placeDisk(index) {
-            const flipped = getFlippedDisks(index, currentPlayer);
-            if (flipped.length === 0) return;
-            boardState[index] = currentPlayer;
-            flipped.forEach(i => boardState[i] = currentPlayer);
-            currentPlayer = currentPlayer === 'blue' ? 'red' : 'blue';
-
-            if (getValidMoves(currentPlayer).size === 0) {
-                currentPlayer = currentPlayer === 'blue' ? 'red' : 'blue';
-                if (getValidMoves(currentPlayer).size === 0) {
-                    gameActive = false;
-                }
-            }
-
-            updateGameState();
-        }
-
-        function calculateDistrictControl() {
-            const districtWins = { blue: 0, red: 0 };
-            districts.forEach(district => {
-                const counts = { blue: 0, red: 0 };
-                district.cells.forEach(i => {
-                    if (boardState[i] === 'blue') counts.blue++;
-                    if (boardState[i] === 'red') counts.red++;
-                });
-                if (counts.blue > counts.red) districtWins.blue++;
-                if (counts.red > counts.blue) districtWins.red++;
-            });
-            return districtWins;
-        }
-
-        function updateScoreBoard() {
-            const blueTokens = boardState.filter(v => v === 'blue').length;
-            const redTokens = boardState.filter(v => v === 'red').length;
-            const control = calculateDistrictControl();
-
-            document.getElementById('blueTokens').textContent = blueTokens;
-            document.getElementById('redTokens').textContent = redTokens;
-            document.getElementById('blueDistricts').textContent = control.blue;
-            document.getElementById('redDistricts').textContent = control.red;
-        }
-
-        function highlightValidMoves() {
-            document.querySelectorAll('.cell').forEach((cell, i) => {
-                cell.classList.remove('valid-move');
-                if (getValidMoves(currentPlayer).has(i)) {
-                    cell.classList.add('valid-move');
-                }
-            });
-        }
-
-        function updateGameState() {
-            highlightValidMoves();
-            updateBoard();
-            updateScoreBoard();
-            if (!gameActive) {
-                const control = calculateDistrictControl();
-                let result = 'Draw';
-                if (control.blue > control.red) result = 'Blue wins!';
-                else if (control.red > control.blue) result = 'Red wins!';
-                document.getElementById('status').innerHTML = `<h2>Game Over: ${result}</h2>`;
-                document.getElementById('gameBoard').classList.add('game-over');
-            }
-        }
-
-        function resetGame() {
-            boardState = Array(81).fill(null);
-            gameActive = true;
-            currentPlayer = 'blue';
-            initBoard();
-        }
-
-        function handleCellClick(e) {
-            if (!gameActive) return;
-            const index = parseInt(e.currentTarget.dataset.index);
-            if (!getValidMoves(currentPlayer).has(index)) return;
-            placeDisk(index);
-            if (gameMode === 'vsComputer' && gameActive && currentPlayer === 'red') {
-                setTimeout(computerMove, 500);
-            }
-        }
-
-        function computerMove() {
-            const validMoves = Array.from(getValidMoves('red'));
-            if (validMoves.length === 0) return;
-
-            // Pick the move with the most flips
-            let bestMove = validMoves[0];
-            let maxFlips = 0;
-            for (let move of validMoves) {
-                const flips = getFlippedDisks(move, 'red').length;
-                if (flips > maxFlips) {
-                    maxFlips = flips;
-                    bestMove = move;
-                }
-            }
-
-            placeDisk(bestMove);
-        }
-
-        function getValidMoves(player) {
-            const moves = new Set();
-            for (let i = 0; i < 81; i++) {
-                if (boardState[i] === null && getFlippedDisks(i, player).length > 0) {
-                    moves.add(i);
-                }
-            }
-            return moves;
-        }
-
-        function getFlippedDisks(index, player) {
-            const opponent = player === 'blue' ? 'red' : 'blue';
-            const directions = [
-                [-1, -1], [0, -1], [1, -1],
-                [-1, 0],          [1, 0],
-                [-1, 1],  [0, 1],  [1, 1]
-            ];
-            const x = index % 9;
-            const y = Math.floor(index / 9);
-            const flipped = [];
-
-            for (const [dx, dy] of directions) {
-                let nx = x + dx;
-                let ny = y + dy;
-                const temp = [];
-                while (nx >= 0 && nx < 9 && ny >= 0 && ny < 9) {
-                    const ni = ny * 9 + nx;
-                    if (boardState[ni] === opponent) {
-                        temp.push(ni);
-                    } else if (boardState[ni] === player) {
-                        flipped.push(...temp);
-                        break;
-                    } else {
-                        break;
-                    }
-                    nx += dx;
-                    ny += dy;
-                }
-            }
-            return flipped;
-        }
-
-        function placeDisk(index) {
-            const flipped = getFlippedDisks(index, currentPlayer);
-            if (flipped.length === 0) return;
-            boardState[index] = currentPlayer;
-            flipped.forEach(i => boardState[i] = currentPlayer);
-            currentPlayer = currentPlayer === 'blue' ? 'red' : 'blue';
-
-            if (getValidMoves(currentPlayer).size === 0) {
-                currentPlayer = currentPlayer === 'blue' ? 'red' : 'blue';
-                if (getValidMoves(currentPlayer).size === 0) {
-                    gameActive = false;
-                }
-            }
-
-            updateGameState();
-        }
-
-        function calculateDistrictControl() {
-            const districtWins = { blue: 0, red: 0 };
-            districts.forEach(district => {
-                const counts = { blue: 0, red: 0 };
-                district.cells.forEach(i => {
-                    if (boardState[i] === 'blue') counts.blue++;
-                    if (boardState[i] === 'red') counts.red++;
-                });
-                if (counts.blue > counts.red) districtWins.blue++;
-                if (counts.red > counts.blue) districtWins.red++;
-            });
-            return districtWins;
-        }
-
-        function updateScoreBoard() {
-            const blueTokens = boardState.filter(v => v === 'blue').length;
-            const redTokens = boardState.filter(v => v === 'red').length;
-            const control = calculateDistrictControl();
-
-            document.getElementById('blueTokens').textContent = blueTokens;
-            document.getElementById('redTokens').textContent = redTokens;
-            document.getElementById('blueDistricts').textContent = control.blue;
-            document.getElementById('redDistricts').textContent = control.red;
-        }
-
-        function highlightValidMoves() {
-            document.querySelectorAll('.cell').forEach((cell, i) => {
-                cell.classList.remove('valid-move');
-                if (getValidMoves(currentPlayer).has(i)) {
-                    cell.classList.add('valid-move');
-                }
-            });
-        }
-
-        function updateGameState() {
-            highlightValidMoves();
-            updateBoard();
-            updateScoreBoard();
-            if (!gameActive) {
-                const control = calculateDistrictControl();
-                let result = 'Draw';
-                if (control.blue > control.red) result = 'Blue wins!';
-                else if (control.red > control.blue) result = 'Red wins!';
-                document.getElementById('status').innerHTML = `<h2>Game Over: ${result}</h2>`;
-                document.getElementById('gameBoard').classList.add('game-over');
-            }
-        }
-
-        function resetGame() {
-            boardState = Array(81).fill(null);
-            gameActive = true;
-            currentPlayer = 'blue';
-            initBoard();
-        }
+    function resetGame() {
+  boardState = Array(81).fill(null);
+  gameActive = true;
+  currentPlayer = 'blue';
+  blueUsedRedistrict = false;
+  redUsedRedistrict = false;
+  redistrictBlueBtn.disabled = false;
+  redistrictRedBtn.disabled = false;
+// Clear AI commentary
+  const commentaryPanel = document.getElementById('aiCommentary');
+  if (commentaryPanel) commentaryPanel.innerHTML = '';
+  initBoard();
+}
 
 
-
-
-        initBoard();
-    </script>
+    initBoard();
+  </script>
 </body>
 </html>
