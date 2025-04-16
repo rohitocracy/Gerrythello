@@ -36,6 +36,10 @@
       border-radius: 10px;
       box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
     }
+#gameLogo {
+  height: 50px;
+  margin-right: 10px;
+}
     #gameBoard {
       display: grid;
       grid-template-columns: repeat(9, 60px);
@@ -120,13 +124,16 @@
 </head>
 <body>
  <div id="gameHeader">
+<img src="logo.png" alt="Othellocracy Logo" id="gameLogo" />
   <h2 id="othellocracy">OTHELLOCRACY</h2>
   <select id="gameMode">
     <option value="twoPlayer">Two Players</option>
     <option value="vsComputer">Player vs Computer</option>
   </select>
   <button id="redistrictBlueBtn" disabled>🔄 Blue Redistrict</button>
-  <button id="redistrictRedBtn" disabled>🔄 Red Redistrict</button>
+<button id="lobbyBlueBtn" disabled>💰 Blue Lobby</button>
+<button id="redistrictRedBtn" disabled>🔄 Red Redistrict</button>
+<button id="lobbyRedBtn" disabled>💰 Red Lobby</button>
   <button id="newGameBtn" style="padding: 10px 20px; margin-left: 20px;">New Game</button>
   <div id="turnIndicator" style="margin-left: 20px; font-weight: bold;">Current Turn: Blue</div>
   &copy;rohitocracy
@@ -180,6 +187,10 @@
     let boardState = Array(81).fill(null);
 let blueUsedRedistrict = false;
 let redUsedRedistrict = false;
+let blueUsedLobby = false;
+let redUsedLobby = false;
+let isLobbying = false;
+
 
     const redistrictBlueBtn = document.getElementById('redistrictBlueBtn');
     const redistrictRedBtn = document.getElementById('redistrictRedBtn');
@@ -199,6 +210,92 @@ let redUsedRedistrict = false;
       gameMode = e.target.value;
       resetGame();
     });
+
+const lobbyBlueBtn = document.getElementById('lobbyBlueBtn');
+const lobbyRedBtn = document.getElementById('lobbyRedBtn');
+
+lobbyBlueBtn.onclick = () => enterLobbyingMode('blue');
+lobbyRedBtn.onclick = () => enterLobbyingMode('red');
+
+function enterLobbyingMode(player) {
+  if (currentPlayer !== player || isLobbying || !gameActive) return;
+
+  const tokenCount = boardState.filter(v => v === player).length;
+  if (tokenCount < 3) {
+    alert(`${player[0].toUpperCase() + player.slice(1)} needs at least 3 tokens to Lobby.`);
+    return;
+  }
+
+  isLobbying = true;
+  highlightLobbyTargets(player);
+}
+
+
+function highlightLobbyTargets(player) {
+  const opponent = player === 'blue' ? 'red' : 'blue';
+  document.querySelectorAll('.cell').forEach((cell, i) => {
+    if (boardState[i] === opponent) {
+      cell.classList.add('valid-move');
+      cell.onclick = () => performLobbyFlip(i, player);
+    } else {
+      cell.onclick = null;
+    }
+  });
+}
+
+function performLobbyFlip(index, player) {
+  const opponent = player === 'blue' ? 'red' : 'blue';
+  if (boardState[index] !== opponent) return;
+
+  boardState[index] = player;
+
+  removeOwnTokens(player, 2, [index]);  // pass index to avoid removing it
+  if (player === 'blue') {
+    blueUsedLobby = true;
+    lobbyBlueBtn.disabled = true;
+  } else {
+    redUsedLobby = true;
+    lobbyRedBtn.disabled = true;
+  }
+
+  isLobbying = false;
+  currentPlayer = opponent;
+
+  updateGameState();
+}
+function removeOwnTokens(player, count, exclude = []) {
+  let owned = [];
+  let districtStrength = {};
+
+  districts.forEach((district, id) => {
+    const count = district.cells.filter(i => boardState[i] === player).length;
+    if (count > 0) districtStrength[id] = count;
+  });
+
+  districts.forEach((district, id) => {
+    if (!districtStrength[id]) return;
+    district.cells.forEach(i => {
+      if (boardState[i] === player && !exclude.includes(i)) {
+        owned.push({ i, weight: 1 / (districtStrength[id] + 0.1) });
+      }
+    });
+  });
+
+  for (let removed = 0; removed < count && owned.length > 0; removed++) {
+    let totalWeight = owned.reduce((sum, x) => sum + x.weight, 0);
+    let rand = Math.random() * totalWeight;
+    let chosenIndex = 0;
+    for (let i = 0; i < owned.length; i++) {
+      rand -= owned[i].weight;
+      if (rand <= 0) {
+        chosenIndex = i;
+        break;
+      }
+    }
+    boardState[owned[chosenIndex].i] = null;
+    owned.splice(chosenIndex, 1);
+  }
+}
 
    
 
@@ -484,6 +581,12 @@ generateCommentary(control.blue, control.red);
   // Enable only the correct redistricting button
   redistrictBlueBtn.disabled = currentPlayer !== 'blue' || blueUsedRedistrict || !gameActive;
   redistrictRedBtn.disabled = currentPlayer !== 'red' || redUsedRedistrict || !gameActive;
+const blueTokenCount = boardState.filter(v => v === 'blue').length;
+const redTokenCount = boardState.filter(v => v === 'red').length;
+
+lobbyBlueBtn.disabled = currentPlayer !== 'blue' || blueUsedLobby || blueTokenCount < 3 || !gameActive || isLobbying;
+lobbyRedBtn.disabled = currentPlayer !== 'red' || redUsedLobby || redTokenCount < 3 || !gameActive || isLobbying;
+
 
   if (!gameActive) {
     const control = calculateDistrictControl();
