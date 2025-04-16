@@ -17,8 +17,14 @@
       gap: 20px;
       align-items: flex-start;
     }
+    #othellocracy {
+  font-family: Fantasy, Copperplate;
+  font-size: 30px;
+  color: #820d11;
+  letter-spacing: 1px;
+}
     #rulesPanel, #commentaryPanel {
-      width: 280px;
+      width: 300px;
       background-color: #fff;
       padding: 15px;
       border-radius: 8px;
@@ -114,6 +120,7 @@
 </head>
 <body>
  <div id="gameHeader">
+  <h2 id="othellocracy">OTHELLOCRACY</h2>
   <select id="gameMode">
     <option value="twoPlayer">Two Players</option>
     <option value="vsComputer">Player vs Computer</option>
@@ -122,6 +129,7 @@
   <button id="redistrictRedBtn" disabled>🔄 Red Redistrict</button>
   <button id="newGameBtn" style="padding: 10px 20px; margin-left: 20px;">New Game</button>
   <div id="turnIndicator" style="margin-left: 20px; font-weight: bold;">Current Turn: Blue</div>
+  &copy;rohitocracy
 </div>
   <div id="gameWrapper">
     <div id="rulesPanel">
